@@ -49,10 +49,12 @@ for i in range(0, 5000):
     if i % 100 == 0:
         print('train loss:', loss.item())
         loss = 0
+        model.eval()
         for image, labels in val_dataset:
             with torch.no_grad():
                 logits = model(image)
                 loss = loss + criterion(logits, labels) / torch.prod(torch.as_tensor(labels.shape))
+        model.train()
         print('val loss:', loss.item() / len(val_dataset) * 1000)
 
 frame = load_img('val/1555.png')

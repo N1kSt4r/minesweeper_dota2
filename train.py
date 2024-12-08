@@ -4,6 +4,12 @@ import time
 import torch
 import numpy as np
 
+# . - closed
+# c - clock
+# m - mana
+# g - junk / endgame
+#   - open
+# * - mine
 symbols = ".cmg *123456"
 translate_dict = {char: i for i, char in enumerate(symbols)}
 

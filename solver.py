@@ -13,12 +13,16 @@ from pynput.keyboard import Listener, Key, Controller as KeyController
 USE_PAUSE = True
 SHIFTS = [-1, 0, 1]
 BORDER_COLOR = [83, 65, 43]
+MAX_LEFT_CLICKS_SINGLE_STEP = 2
+# 1 - optimal for bonuses
+# 2/3 are optimal for user time / bonuses
+# 100500 - unlimited. Optimal for user time
 
 TRIES_SLEEP = 0.123
 TRIES_NUMBER = 10
 BORDER_WIDTH = 4
 CELL_WIDTH = 36
-SCREEN_SCALE = 3
+SCREEN_SCALE = 1
 
 
 def pairwise_L1_distance(left, right):
@@ -55,7 +59,7 @@ class Solver(Listener):
 
     def _on_press(self, key):
         char = getattr(key, 'char', None)
-        if char == 'q':
+        if char == 'q' or key == Key.esc:
             self.terminated = True
         elif char == 's' or key == Key.space:
             if self.solve_thread is None:
@@ -67,8 +71,8 @@ class Solver(Listener):
                     self.solve_thread = None
                     self._on_press(key)
                 except:
-                    print('Can\'t join the thread')
-        elif key == Key.f9:
+                    print('Can\'t join the thread yet')
+        elif char == 'z' or key == Key.f9:
             pass
         else:
             self.miss_count += 1
@@ -99,9 +103,8 @@ class Solver(Listener):
 
             text_field = self.add_margin(text_field)
             to_left, to_right = self.find_naive(text_field)
-            to_left_hard, to_right_hard, maybe_cell = self.find_hard(text_field)
+            to_left_hard, to_right_hard, maybe_cell = self.find_brute_force(text_field)
             to_right.update(to_right_hard)
-            # if len(to_left) < 2:
             to_left += list(to_left_hard)
 
             if to_left:
@@ -114,7 +117,7 @@ class Solver(Listener):
                     if mana_cells:
                         to_left = self.trunk_nearest(mana_cells, to_left)
 
-                to_left = list(to_left)[:3]
+                to_left = list(to_left)[:MAX_LEFT_CLICKS_SINGLE_STEP]
 
             if to_left or to_right: 
                 self.process_clicks(to_left, to_right, shift=-1)
@@ -254,7 +257,7 @@ class Solver(Listener):
         to_left = [cell[:2] for cell in to_left]
         return to_left, to_right
 
-    def find_hard(self, field):
+    def find_brute_force(self, field):
         border, to_check = self.find_stoke(field)
         count = [0] * len(border)
 
